@@ -254,8 +254,8 @@ class ObservationManager(ManagerBase):
       return self._obs_buffer
 
     obs_buffer: dict[str, torch.Tensor | dict[str, torch.Tensor]] = dict()
-    print("The observation buffer is:",obs_buffer)
-    import ipdb; ipdb.set_trace()
+    #print("The observation buffer is:",obs_buffer)
+    #import ipdb; ipdb.set_trace()
     for group_name in self._group_obs_term_names:
       print(f"Computing group '{group_name}' observations...")
       obs_buffer[group_name] = self.compute_group(group_name, update_history)
@@ -318,7 +318,7 @@ class ObservationManager(ManagerBase):
       print("The group obs is:",group_obs_cat) #TODO REMOVE
       ipdb.set_trace()
       return group_obs_cat
-    
+
     return group_obs
 
   def _prepare_terms(self) -> None:
