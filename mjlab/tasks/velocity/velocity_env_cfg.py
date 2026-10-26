@@ -34,14 +34,6 @@ def make_velocity_env_cfg() -> ManagerBasedRlEnvCfg:
   ##
   # Observations
   ##
-    extero_terms = {
-    "height_map":ObservationTermCfg(
-      func= mdp.height_map,
-      params={"sensor_name": "height_scanner"},
-      noise= Unoise(n_min=-0.07, n_max=0.07)
-    ),
-
-  }
 
     policy_terms = {
         # "base_ang_vel": ObservationTermCfg(
@@ -86,13 +78,6 @@ def make_velocity_env_cfg() -> ManagerBasedRlEnvCfg:
         
     }
 
-    extero_terms = {
-        "height_map": ObservationTermCfg(
-            func=mdp.height_map,
-            params={"sensor_name": "height_scanner"},
-            noise=Unoise(n_min=-0.07, n_max=0.07),
-        ),
-    }
 
     critic_terms = {
         "base_lin_vel": ObservationTermCfg(
@@ -127,12 +112,7 @@ def make_velocity_env_cfg() -> ManagerBasedRlEnvCfg:
             enable_corruption=False,
             history_length=1,
         ),
-        "extero": ObservationGroupCfg(
-            terms=extero_terms,
-            concatenate_terms=True,
-            enable_corruption=True,
-            history_length=1,
-        ),
+
     }
 
     ##
@@ -146,12 +126,6 @@ def make_velocity_env_cfg() -> ManagerBasedRlEnvCfg:
             scale=0.5,  # Override per-robot.
             use_default_offset=True,
         ),
-        "joint_phase": JointPhaseActionCfg( #TODO: implement JointPhaseActionCfg
-            entity_name="robot",
-            actuator_names=(".*",),
-            scale=0.5,  # Override per-robot.
-            use_default_offset=True,
-        )
     }
 
     ##

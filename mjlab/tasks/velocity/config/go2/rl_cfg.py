@@ -32,6 +32,7 @@ def unitree_go2_ppo_runner_cfg() -> RslRlOnPolicyRunnerCfg:
       desired_kl=0.01,
       max_grad_norm=1.0,
     ),
+    obs_groups={"policy": ("policy", "extero"), "critic": ("critic",)},
     experiment_name="go2_velocity",
     save_interval=100,
     num_steps_per_env=24,
