@@ -11,7 +11,7 @@ INSTALL_REQUIRES = [
     "torchrunx>=0.3.4",
     "warp-lang>=1.11.0.dev20251211",
     "mujoco-warp",
-    "mujoco>=3.4.0",
+    "mujoco==3.3.7",
     "mujoco-mjx>=3.4.0",
     "jax>=0.4.20",
     "jaxlib>=0.4.20",
