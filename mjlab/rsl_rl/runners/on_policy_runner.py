@@ -101,17 +101,7 @@ class OnPolicyRunner:
         #! FRICTION COEFFICIENTS
         #! THIGH AND SHANK CONTACT STATES
         #! EXTERNAL FORCES AND TORQUES ON THE BODY
-        
-        try:
-            #Inspect everything possible in observations
-            print("Observations received from the environment:", obs.shape)
-            print("Data type of observations:",type(obs))
-            print("Observation keys:", obs.keys())
-            for key in obs.keys():
-                print(f"Observation '{key}': shape {obs[key].shape}, dtype {obs[key].dtype}")
-        except Exception as e:            print(f"Error inspecting observations: {e}")
-        
-        import ipdb; ipdb.set_trace()
+
         self.train_mode()  # switch to train mode (for dropout for example)
 
         # Book keeping

@@ -5,6 +5,34 @@ description = "Add your description here"
 readme = "README.md"
 requires-python = ">=3.8"
 dependencies = [
+    "prettytable",
+    "tqdm",
     "tyro>=1.0.6",
-    "warp>=1.0.4",
+    "torch>=2.7.0",
+    "torchrunx>=0.3.4",
+
+    # NVIDIA Warp is imported in Python as `warp`.
+    "warp-lang==1.11.0",
+
+    # Keep this compatible with the pinned MuJoCo-Warp source.
+    "mujoco==3.3.7",
+    "mujoco-mjx>=3.4.0",
+    "mujoco-warp @ git+https://github.com/google-deepmind/mujoco_warp@9491175b7cbea87e28d3e3e67733095317c33398",
+
+    "jax>=0.4.20",
+    "jaxlib>=0.4.20",
+    "flax>=0.8.0",
+    "optax>=0.1.7",
+    "trimesh>=4.8.3",
+    "viser>=1.0.16",
+    "moviepy",
+    "tensordict",
+    "rsl-rl-lib==3.1.0",
+    "tensorboard>=2.20.0",
+    "onnxscript>=0.5.4",
+    "wandb>=0.22.3",
+    "etils>=1.7.0",
+    "dm-tree>=0.1.8",
+    "absl-py>=2.0.0",
+    "orbax-checkpoint>=0.1.0",
 ]

@@ -143,9 +143,6 @@ def run_train(task_id: str, cfg: TrainConfig, log_dir: Path) -> None:
     if rank == 0:
         dump_yaml(log_dir / "params" / "env.yaml", env_cfg)
         dump_yaml(log_dir / "params" / "agent.yaml", agent_cfg)
-        
-    # import ipdb; ipdb.set_trace()
-    
 
     runner.learn(
         num_learning_iterations=cfg.agent.max_iterations,
