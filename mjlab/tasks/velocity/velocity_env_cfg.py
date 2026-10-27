@@ -75,7 +75,7 @@ def make_velocity_env_cfg() -> ManagerBasedRlEnvCfg:
             func=mdp.last_action,
             history_length=2
         ),
-        
+
     }
 
 
@@ -439,7 +439,7 @@ def make_velocity_env_cfg() -> ManagerBasedRlEnvCfg:
                     {"step": 5000 * 24, "weight": -1.0},
                 ],
             },
-        ),  
+        ),
         "joint_motion": CurriculumTermCfg(
             func=mdp.reward_weight,
             params={
@@ -483,7 +483,7 @@ def make_velocity_env_cfg() -> ManagerBasedRlEnvCfg:
             azimuth=90.0,
         ),
         sim=SimulationCfg(
-            nconmax=35,
+            nconmax=64,
             njmax=300,
             mujoco=MujocoCfg(
                 timestep=0.005,

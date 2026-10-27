@@ -11,26 +11,28 @@
 
 ## 1. Translate the paper into an implementation spec
 
-- [ ] Record the paper version used and review the method, experiment setup, and supplementary material if available.
-- [ ] Write down the exact per-leg phase definition, phase offsets, phase progression, and phase reset/initialization behavior.
-- [ ] Transcribe the cubic Hermite spline definition for desired foot height, including swing/stance intervals, boundary conditions, and parameters.
-- [ ] Transcribe how local heightmap statistics modify swing height, including the neighborhood, statistic(s), scaling, clamping, and units.
-- [ ] Transcribe the swing-phase contact penalty and its phase mask, sensor signal, and coefficient.
-- [ ] Record the full observation vector and ordering, action definition/scaling, and policy update/control frequency.
+- [x] Record the paper version used and review the method and experiment setup.
+- [ ] Write down the exact per-leg phase definition, phase offsets, phase progression, and phase reset/initialization behavior. (The formula and author-code offsets are recorded below; episode-reset behavior still needs verification.)
+- [x] Transcribe the cubic Hermite spline definition for desired foot height, including swing/stance intervals and boundary conditions.
+- [ ] Transcribe how local heightmap statistics modify swing height, including the neighborhood, scaling/clamping, and units. (The statistic and addition are known; the exact sampling neighborhood and any clipping need verification.)
+- [x] Transcribe the swing-phase contact penalty and its phase mask, sensor signal, and coefficient.
+- [x] Record the paper's observation vector, action type, and control frequency. (The exact action scale and every implementation-specific preprocessing detail still need verification.)
 - [ ] Record all other reward terms, weights, termination rules, terrain curriculum, and domain randomization used in the reported experiments.
-- [ ] Distinguish required method components from experiment-specific settings and engineering choices in the reference code.
+- [x] Distinguish required method components from experiment-specific settings and engineering choices in the reference code.
 
 **Spec notes / paper locations:**
 
 | Topic | Paper section/equation/table | Required definition / value | Repo implementation location |
 |---|---|---|---|
-| Phase | | | |
-| Foot-height spline | | | |
-| Terrain adaptation | | | |
-| Swing contact penalty | | | |
-| Observations/actions | | | |
-| Terrain curriculum/randomization | | | |
-| Training/evaluation | | | |
+| Phase | III-C, Eq. 2; IV-B; authors' `robots/gait.py` | `phi_i(t) = (phi_i,0 + 2*pi*f*t) mod 2*pi`; stance is `[0, 2*pi*p_stance)`, swing is the remainder. Paper says sample `f ~ U[1,3] Hz`. Authors' code uses `p_stance=0.5`, offsets `[0, pi, pi, 0]` (FR, FL, RR, RL), initializes those offsets on reset, and advances phase by `2*pi*f*ctrl_dt`. The paper's frequency is `U[1,3] Hz`; confirm the authors' training override uses that range. | Not implemented yet |
+| Foot-height spline | III-E, Eqs. 5-9; Table I | Cubic Hermite interpolation in phase coordinates with zero endpoint tangents. Stance height is `d_b`; swing-up goes from `d_b` to `d_s + delta_H_i`; swing-down returns to `d_b`. `T_stance=2*pi*p_stance`, `T_swing=pi*(1-p_stance)`, `T_peak=pi*(1+p_stance)`. Paper foot-phase reward is `sum_i exp(-((p_des_f,z,i - p_f,z,i)^2 / sigma_f))`, `sigma_f=0.05`, weight `+1.0`. Note: authors' `joystick_base.py` currently computes `exp(-sum_i(error_i^2)/sigma_f)`, which is not algebraically the same; replicate the paper equation unless intentionally reproducing that code variant. | Not implemented yet |
+| Terrain adaptation | III-E, III-B; IV-G | Per leg, compute `delta_H_i = H_max,i(h_t) - H_min,i(h_t)` from terrain heights in the world frame and add it to the swing apex. Deployment map is an 11x9 robot-centric grid over 1.1 m x 0.9 m. The paper does not fully specify the exact per-foot sampling neighborhood. Authors' `joystick_base.py` divides the 11x9 map into four quadrants and uses each quadrant's max-minus-min as that leg's height variation; verify orientation/leg-to-quadrant mapping before adopting it. | Current Go2 scanner and `mdp.height_map`; representation differs and still needs comparison |
+| Swing contact penalty | III-E, Eq. 9; Table I | `sum_i 1[pi <= phi_i < 2*pi] * c_i`, where `c_i=1` when foot i contacts ground; weight `-0.25`. | Existing `feet_ground_contact` sensor is configured; PGTT reward not implemented |
+| Observations/actions | III-D, Eqs. 3-4; IV-G | Actor input order: body angular velocity, local gravity vector, joint angles, joint velocities, `cos(phi)` for four legs, `sin(phi)` for four legs, flattened heightmap, frequency, previous action, velocity command. Critic additionally receives privileged local linear velocity. Action is 12 desired joint angles around stand pose, `q_des=q_stand+k*a`; policy/control rate is 50 Hz; simulation timestep is 0.005 s. Numeric `k` must be matched to the authors' implementation; authors' Go2 config sets `action_scale=0.5`. Authors' Go2 code uses an 11x9 heightmap, with 0.1 m grid spacing. | Existing policy/extero groups; phase and frequency absent |
+| Terrain curriculum/randomization | III-F-H; IV-C | WFC stair-like terrain with four difficulty levels. Paper reports step width 0.3-0.45 m, 2-4 steps, level-dependent step heights 1-3, 1-7, 1-10, 1-13 cm. Randomize sensor noise, robot masses/default joint positions/motor gains/friction, and terrain friction. Exact per-parameter distributions need table/code verification. | Existing terrain curriculum/randomization; not yet compared |
+| Training/evaluation | IV-B-F | PPO; command `[v_x,v_y,omega_z]`, frequency sampled `U[1,3] Hz`; 5 seeds in reported comparisons. Paper reports success-rate evaluation over 1000 rollouts and disturbance/discrete-obstacle tests. | Existing RSL-RL PPO task; experiment protocol not configured for PGTT |
+
+**Source distinctions:** Paper: https://arxiv.org/abs/2510.18348 (v2). Authors' code: https://github.com/NtagkasAlex/phase_guided_terrain_traversal. Treat paper equations/settings as requirements; use code only to resolve implementation details the paper omits, and record disagreements rather than silently copying them. A concrete discrepancy to preserve: the paper's phase reward is a sum of per-foot exponentials, while the current authors' code exponentiates the sum of squared errors.
 
 ## 2. Audit the existing Go2 task and deployment constraints
 
