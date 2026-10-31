@@ -52,9 +52,23 @@ def pgtt_angular_velocity_xy_cost(env: ManagerBasedRlEnv) -> torch.Tensor:
   return robot.data.root_link_ang_vel_b[:, :2].square().sum(dim=-1)
 
 
+def _go2_actuator_force(robot: Entity) -> torch.Tensor:
+  """Return actuator forces after checking they map one-to-one to joints."""
+  actuator_force = robot.data.actuator_force
+  joint_vel = robot.data.joint_vel
+  if actuator_force.shape[-1] != joint_vel.shape[-1]:
+    raise RuntimeError(
+      "PGTT actuation rewards require one actuator force per joint: "
+      f"got actuator_force={tuple(actuator_force.shape)}, "
+      f"joint_vel={tuple(joint_vel.shape)}"
+    )
+  return actuator_force
+
+
 def pgtt_joint_power_cost(env: ManagerBasedRlEnv) -> torch.Tensor:
   robot: Entity = env.scene.entities["robot"]
-  return (robot.data.joint_torques.abs() * robot.data.joint_vel.abs()).sum(dim=-1)
+  actuator_force = _go2_actuator_force(robot)
+  return (actuator_force.abs() * robot.data.joint_vel.abs()).sum(dim=-1)
 
 
 def pgtt_default_pose_cost(env: ManagerBasedRlEnv) -> torch.Tensor:
@@ -75,7 +89,7 @@ def pgtt_joint_limits_cost(env: ManagerBasedRlEnv) -> torch.Tensor:
 
 def pgtt_joint_torque_cost(env: ManagerBasedRlEnv) -> torch.Tensor:
   robot: Entity = env.scene.entities["robot"]
-  return robot.data.joint_torques.square().sum(dim=-1)
+  return _go2_actuator_force(robot).square().sum(dim=-1)
 
 
 def gait_phase_features(
