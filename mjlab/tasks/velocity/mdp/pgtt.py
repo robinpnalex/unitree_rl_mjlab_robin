@@ -130,10 +130,11 @@ def _local_terrain_height_variation(
   sensor: RayCastSensor = env.scene[sensor_name]
   sensor_data = sensor.data
   hit_pos_w = sensor_data.hit_pos_w
-  hit_pos_sensor = quat_apply_inverse(
-    sensor_data.quat_w.unsqueeze(1),
-    hit_pos_w - sensor_data.pos_w.unsqueeze(1),
+  relative_hit_pos = hit_pos_w - sensor_data.pos_w.unsqueeze(1)
+  sensor_quat = sensor_data.quat_w.unsqueeze(1).expand(
+    -1, hit_pos_w.shape[1], -1
   )
+  hit_pos_sensor = quat_apply_inverse(sensor_quat, relative_hit_pos)
 
   x = hit_pos_sensor[..., 0]
   y = hit_pos_sensor[..., 1]
