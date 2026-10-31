@@ -70,6 +70,7 @@
 - [ ] Verify contact output for each foot in a controlled stance/lift test.
 - [ ] Log phase, desired foot height, measured foot height, local terrain statistic, contact state, and each reward term.
 - [ ] Check rewards are finite and have the expected sign/magnitude in hand-constructed swing and stance cases.
+- [ ] Audit for reward exploits: verify body-ground contacts terminate, commanded velocity cannot be ignored for high shaping reward, and tracking/reward terms correlate with task success.
 - [ ] Confirm reset behavior does not start with stale phase, sensor, or contact history.
 - [ ] Run a short smoke training job and confirm actions, episode resets, and checkpoint saving work.
 
@@ -93,6 +94,6 @@
 
 ## Current checkpoint
 
-**Not yet implemented/verified:** paper equations and hyperparameters have not yet been transcribed into this checklist; PGTT-specific rewards and phase features are not implemented in this repo; environment construction/training has not been verified here because the local Python environment is missing `warp`.
+**Implemented but still requiring validation:** a separate PGTT Go2 config, phase/frequency observations, terrain heightmap observation, phase-guided foot-height reward, swing-contact penalty, and paper-inspired shared rewards are present. The task has completed one user-reported 1-iteration CUDA smoke run. That run is not enough to verify episode-level reward behavior or rule out reward exploits. PGTT retains non-foot ground-contact and fall terminations as guardrails. The terrain generator, randomization, and evaluation protocol still differ from the paper or need verification.
 
-**Immediate next action:** fill in Section 1 from the paper, then audit the Go2 model/sensor/observation paths in Section 2 before editing task code.
+**Immediate next action:** run a short multi-environment audit and inspect episode metrics, contact/fall rates, velocity tracking, and per-term reward magnitudes before committing to a long run.

@@ -18,6 +18,66 @@ if TYPE_CHECKING:
 _LEG_ORDER = ("FR", "FL", "RR", "RL")
 
 
+def pgtt_track_linear_velocity(
+  env: ManagerBasedRlEnv,
+  command_name: str = "twist",
+  sigma: float = 0.25,
+) -> torch.Tensor:
+  """Paper's Gaussian tracking reward for local-frame planar velocity."""
+  robot: Entity = env.scene.entities["robot"]
+  command = env.command_manager.get_command(command_name)
+  error = command[:, :2] - robot.data.root_link_lin_vel_b[:, :2]
+  return torch.exp(-torch.sum(error.square(), dim=-1) / sigma)
+
+
+def pgtt_track_angular_velocity(
+  env: ManagerBasedRlEnv,
+  command_name: str = "twist",
+  sigma: float = 0.25,
+) -> torch.Tensor:
+  """Paper's Gaussian tracking reward for yaw angular velocity."""
+  robot: Entity = env.scene.entities["robot"]
+  command = env.command_manager.get_command(command_name)
+  error = command[:, 2] - robot.data.root_link_ang_vel_b[:, 2]
+  return torch.exp(-error.square() / sigma)
+
+
+def pgtt_linear_velocity_z_cost(env: ManagerBasedRlEnv) -> torch.Tensor:
+  robot: Entity = env.scene.entities["robot"]
+  return robot.data.root_link_lin_vel_w[:, 2].square()
+
+
+def pgtt_angular_velocity_xy_cost(env: ManagerBasedRlEnv) -> torch.Tensor:
+  robot: Entity = env.scene.entities["robot"]
+  return robot.data.root_link_ang_vel_b[:, :2].square().sum(dim=-1)
+
+
+def pgtt_joint_power_cost(env: ManagerBasedRlEnv) -> torch.Tensor:
+  robot: Entity = env.scene.entities["robot"]
+  return (robot.data.joint_torques.abs() * robot.data.joint_vel.abs()).sum(dim=-1)
+
+
+def pgtt_default_pose_cost(env: ManagerBasedRlEnv) -> torch.Tensor:
+  robot: Entity = env.scene.entities["robot"]
+  default_joint_pos = robot.data.default_joint_pos
+  assert default_joint_pos is not None
+  return (robot.data.joint_pos - default_joint_pos).square().sum(dim=-1)
+
+
+def pgtt_joint_limits_cost(env: ManagerBasedRlEnv) -> torch.Tensor:
+  robot: Entity = env.scene.entities["robot"]
+  limits = robot.data.soft_joint_pos_limits
+  assert limits is not None
+  joint_pos = robot.data.joint_pos
+  outside = (joint_pos < limits[..., 0]) | (joint_pos > limits[..., 1])
+  return outside.float().sum(dim=-1)
+
+
+def pgtt_joint_torque_cost(env: ManagerBasedRlEnv) -> torch.Tensor:
+  robot: Entity = env.scene.entities["robot"]
+  return robot.data.joint_torques.square().sum(dim=-1)
+
+
 def gait_phase_features(
   env: ManagerBasedRlEnv, command_name: str = "gait_phase"
 ) -> torch.Tensor:
